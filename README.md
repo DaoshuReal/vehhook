@@ -4,6 +4,15 @@ vehhook is a single-header C++20 Windows function interception framework that re
 
 Unlike MinHook, Detours, and most traditional hooking libraries, vehhook does not modify target code, patch instructions, or allocate trampolines. No code bytes are ever overwritten. No executable memory is ever allocated.
 
+| Feature | vehhook | MinHook / Detours |
+|---|---|---|
+| Modifies target code | No | Yes |
+| Trampolines | No | Yes |
+| Instruction relocation | No | Yes |
+| Executable memory allocation | No | Yes |
+| Uses VEH | Yes | No |
+| Uses PAGE_GUARD | Yes | No |
+
 ## how it works
 
 1. `PAGE_GUARD` is set on the memory page containing the target function
@@ -82,6 +91,14 @@ Target function is called
             v
       Continue execution
 ```
+
+## implementation
+
+- ~430 lines of C++20
+- Single-header library (drop `src/vehhook.h` into your project)
+- 100% usermode
+- No external dependencies
+- Automated test suite (8 test cases)
 
 ## prerequisites
 
