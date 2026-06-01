@@ -156,6 +156,18 @@ static int WINAPI MyDetour(int x) {
 
 if you have three functions on the same page, you can hook all of them. the library tracks each hook individually and only re-arms the page guard when at least one hook on that page is enabled.
 
+## robustness
+
+the test suite covers malformed and edge-case scenarios:
+
+- **invalid target addresses** - null pointers and non-executable pages are rejected at hook creation time
+- **duplicate hooks** - registering the same target twice returns an invalid hook
+- **repeated enable/disable** - 100 consecutive enable/disable cycles without state corruption
+- **multiple hooks on same page** - three functions on one page, each independently hooked with different detours
+- **double remove** - calling `remove()` on an already-removed hook is safe (returns false)
+- **invalid operations** - `Enable`, `Disable`, `IsEnabled`, and `remove` on an invalid hook all return false safely
+- **concurrent access** - 4 threads each calling the hooked function 100 times; the guard page race window is visible (not all calls are intercepted) but no crashes or corruption occur
+
 ## limitations
 
 - **PAGE_GUARD applies to the whole page** - if the target page contains other functions that get called, they'll trigger guard violations too. the handler handles this gracefully (just continues execution), but it means those calls consume the guard and your hook won't fire until the next cycle
