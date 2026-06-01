@@ -1,23 +1,22 @@
 # vehhook - VEH + PAGE_GUARD Function Interception
 
-i wanted to see if i could hook functions without patching a single byte of code. you can!, using vectored exception handling and page guard protection.
+vehhook is a single-header C++20 Windows function interception framework that redirects execution entirely through **Vectored Exception Handling** and **PAGE_GUARD** memory protection.
 
-this is the result of that.
+Unlike MinHook, Detours, and most traditional hooking libraries, vehhook does not modify target code, patch instructions, or allocate trampolines. No code bytes are ever overwritten. No executable memory is ever allocated.
 
-## what is this?
+## how it works
 
-vehhook is a single-header C++20 library that intercepts function calls on Windows by:
+1. `PAGE_GUARD` is set on the memory page containing the target function
+2. When the target is called, the CPU raises `STATUS_GUARD_PAGE_VIOLATION`
+3. The Vectored Exception Handler catches it and replaces the instruction pointer with the detour address
+4. The Trap Flag is set, causing `STATUS_SINGLE_STEP` after one instruction
+5. The single-step handler re-applies `PAGE_GUARD` and execution continues
 
-1. setting `PAGE_GUARD` on the memory page containing the target function
-2. catching the resulting `STATUS_GUARD_PAGE_VIOLATION` via a Vectored Exception Handler
-3. redirecting the instruction pointer to your detour function
-4. re-arming the guard page when execution resumes
-
-no inline patches. no jmp hooks. no int3. no trampolines. no code modification at all.
+you end up with function interception without ever touching the original code.
 
 ## why does this exist?
 
-most hooking libraries (minhook, detours, etc) work by overwriting the first few bytes of the target function. that's fine for production, but i wanted to understand the exception handling internals of Windows better.
+most hooking libraries work by overwriting the first few bytes of the target function. that's fine for production, but i wanted to understand the exception handling internals of Windows better.
 
 this project is purely educational. it's meant to demonstrate:
 
